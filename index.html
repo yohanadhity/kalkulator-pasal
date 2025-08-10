@@ -1,364 +1,206 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Kalkulator Denda LVPD by Akash</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kalkulator Denda & Hukuman LVPD</title>
 <style>
-  :root{
-    --bg:#e8f8ec;
-    --card:#c8f7c5;
-    --muted:#2d572c;
-    --accent:#4caf50;
-    --soft:#a8e6a3;
-  }
-  body{
-    background: linear-gradient(135deg,var(--bg), #d8f2d8);
-    font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
-    margin:0;
-    padding:24px;
-    color:var(--muted);
-    -webkit-font-smoothing:antialiased;
-  }
-  .wrap{
-    max-width:1100px;
-    margin:0 auto;
-    display:grid;
-    grid-template-columns: 1fr 380px;
-    gap:20px;
-    align-items:start;
-  }
-  header{
-    grid-column:1/ -1;
-    text-align:center;
-    margin-bottom:4px;
-  }
-  h1{margin:6px 0; font-size:1.5rem;}
-  p.lead{margin:0;color:#2a5a2a;opacity:.9}
-
-  .panel{
-    background:var(--card);
-    border-radius:14px;
-    padding:14px;
-    box-shadow:0 8px 24px rgba(0,0,0,0.08);
-  }
-
-  /* daftar pasal */
-  .list{
-    max-height:72vh;
-    overflow:auto;
-    padding:10px;
-    display:flex;
-    flex-direction:column;
-    gap:8px;
-  }
-  .item{
-    display:flex;
-    gap:10px;
-    align-items:flex-start;
-    padding:10px;
-    border-radius:10px;
-    background:linear-gradient(180deg, rgba(255,255,255,0.35), rgba(0,0,0,0.02));
-    border:1px solid rgba(0,0,0,0.03);
-  }
-  .item input[type="checkbox"]{transform:scale(1.15);margin-top:4px;}
-  .meta{font-size:0.95rem;}
-  .meta strong{display:block;font-weight:700;color:var(--muted)}
-  .meta .desc{font-size:0.86rem;color:#234a24;margin-top:4px}
-  .tag{margin-left:auto; font-size:0.82rem; color:#154214; background:rgba(255,255,255,0.2); padding:6px 8px; border-radius:8px; align-self:center}
-
-  /* sidebar hasil */
-  .summary{
-    position:sticky;
-    top:24px;
-  }
-  .summary h2{margin:0 0 8px 0;font-size:1.1rem}
-  .totals{
-    display:flex;
-    flex-direction:column;
-    gap:8px;
-    margin-bottom:10px;
-  }
-  .total-row{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:10px;
-    border-radius:10px;
-    background:var(--soft);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
-    font-weight:700;
-  }
-  .controls{display:flex; gap:8px; margin-top:10px;}
-  .btn{
-    border:0; padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:700;
-  }
-  .btn.primary{background:var(--accent); color:white}
-  .btn.ghost{background:transparent; border:1px solid rgba(0,0,0,0.06)}
-  .selected-list{max-height:32vh; overflow:auto; padding:8px; margin-top:12px; border-radius:10px; background:#f6fff6; border:1px solid rgba(0,0,0,0.03)}
-
-  /* responsive */
-  @media (max-width:980px){
-    .wrap{grid-template-columns:1fr; padding:0 8px;}
-    .summary{position:relative; top:auto}
-  }
-  /* small helper */
-  .note{font-size:0.86rem;color:#2a5a2a;opacity:.9}
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #e6f9e6;
+        margin: 0;
+        padding: 0;
+    }
+    header {
+        background-color: #4CAF50;
+        color: white;
+        padding: 15px;
+        text-align: center;
+    }
+    main {
+        max-width: 900px;
+        margin: auto;
+        padding: 15px;
+    }
+    select, button {
+        width: 100%;
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+    .pasal-list {
+        background: #fff;
+        border-radius: 8px;
+        padding: 0;
+        margin-top: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        overflow-x: auto;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th, td {
+        border-bottom: 1px solid #f0f0f0;
+        padding: 8px;
+        text-align: left;
+    }
+    th {
+        background-color: #c8f7c5;
+    }
+    .total {
+        background: #c8f7c5;
+        padding: 10px;
+        border-radius: 5px;
+        font-weight: bold;
+        margin-top: 15px;
+    }
+    @media (max-width: 600px) {
+        table, thead, tbody, th, td, tr {
+            display: block;
+        }
+        thead tr {
+            display: none;
+        }
+        td {
+            padding: 8px;
+            border: none;
+            border-bottom: 1px solid #ddd;
+        }
+        td:before {
+            content: attr(data-label);
+            font-weight: bold;
+            display: block;
+        }
+    }
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <h1>Kalkulator Denda LVPD <small style="font-weight:600;color:#165b2a">by Akash</small></h1>
-      <p class="lead">Centang pasal yang berlaku — total denda, total hukuman (bulan) dan total impound (hari) akan dihitung otomatis.</p>
-    </header>
 
-    <!-- daftar pasal -->
-    <section class="panel">
-      <h2 style="margin-top:0">Daftar Pasal</h2>
-      <div class="list" id="daftarPasal">
-        <!-- akan di-render oleh JavaScript -->
-      </div>
-      <p class="note" style="margin-top:12px">Catatan: jika suatu pasal di daftar tidak memiliki nilai denda di sumber, ditampilkan sebagai <em>TBD</em> (denda = $0 dalam kalkulasi).</p>
-    </section>
+<header>
+    <h1>Kalkulator Denda & Hukuman LVPD</h1>
+</header>
 
-    <!-- sidebar/hasil -->
-    <aside class="panel summary">
-      <h2>Hasil Perhitungan</h2>
+<main>
+    <label for="kategori">Pilih Kategori Pasal:</label>
+    <select id="kategori" onchange="tampilkanPasal()">
+        <option value="">-- Pilih Kategori --</option>
+        <option value="laluLintas">Pelanggaran Lalu Lintas</option>
+        <option value="pidana">Tindak Pidana</option>
+        <option value="lainnya">Lainnya</option>
+    </select>
 
-      <div class="totals">
-        <div class="total-row"><span>Total Denda</span><span id="totalDenda">$0</span></div>
-        <div class="total-row"><span>Total Hukuman (bulan)</span><span id="totalBulan">0 bln</span></div>
-        <div class="total-row"><span>Total Impound (hari)</span><span id="totalHari">0 hari</span></div>
-      </div>
+    <div id="pasalContainer" class="pasal-list"></div>
 
-      <div class="controls">
-        <button class="btn primary" id="btnCopy">Salin Ringkasan</button>
-        <button class="btn ghost" id="btnReset">Reset</button>
-      </div>
+    <div class="total">
+        Total Denda: <span id="totalDenda">0</span>  
+        <br>
+        Total Hukuman: <span id="totalHukuman">0</span> bulan  
+        <br>
+        Total Impound: <span id="totalImpound">0</span> hari
+    </div>
 
-      <h3 style="margin-top:12px;margin-bottom:6px">Pasal Terpilih</h3>
-      <div class="selected-list" id="selectedList">Belum ada pasal yang dipilih.</div>
-    </aside>
-  </div>
+    <button onclick="resetPilihan()">Reset</button>
+</main>
 
 <script>
-/* Data lengkap semua pasal sesuai input user.
-   Untuk baris yang tidak menyediakan denda/bln/impound, saya set nilai default 0 dan
-   menaruh catatan text di `note` supaya tampil di label.
-*/
-const pasalList = [
-  // Pasal 1 - Pelanggaran Lalu Lintas
-  { kode:"A01", nama:"General Traffic Violations", denda:2000 },
-  { kode:"A02", nama:"Failed to Pay Any Tickets Given", denda:5000, bulan:15 },
-  { kode:"A03", nama:"Driving without License", denda:2000 },
-  { kode:"A04", nama:"Reckless Driving", denda:2000 },
-  { kode:"A05", nama:"Speeding", denda:2000 },
-  { kode:"A06", nama:"Improper Vehicle Parking", denda:3000, impound:2 },
-  { kode:"A07", nama:"Evading Police Stop", denda:2000, impound:2 },
-  { kode:"A08", nama:"Illegal Modifications on Vehicle", denda:2000, impound:2 },
-  { kode:"A09", nama:"Unregistered Vehicle", denda:2000, impound:2 },
-  { kode:"A10", nama:"Vehicular Endangerment", denda:3000 },
-  { kode:"A11", nama:"Failure to Yield to Emergency Vehicles", denda:2000 },
-  { kode:"A12", nama:"Failure to Yield to A Roadblock", denda:3000, impound:1 },
-  { kode:"A13", nama:"Following An Emergency Vehicle", denda:2000, impound:1 },
-  { kode:"A14", nama:"Driving Under Influence", denda:2000, impound:2 },
-  { kode:"A15", nama:"Vehicular Manslaughter", denda:5000, impound:3 },
+    const dataPasal = {
+        laluLintas: [
+            { kode:"A01", nama:"General Traffic Violations", denda:2000 },
+            { kode:"A02", nama:"Failed to Pay Any Tickets Given", denda:5000, hukuman:15 },
+            { kode:"A03", nama:"Driving without License", denda:2000 },
+            { kode:"A04", nama:"Reckless Driving", denda:2000 },
+            { kode:"A05", nama:"Speeding", denda:2000 },
+            { kode:"A06", nama:"Improper Vehicle Parking", denda:3000, impound:2 },
+            { kode:"A07", nama:"Evading Police Stop", denda:2000, impound:2 },
+            { kode:"A08", nama:"Illegal Modifications on Vehicle", denda:2000, impound:2 },
+            { kode:"A09", nama:"Unregistered Vehicle", denda:2000, impound:2 },
+            { kode:"A10", nama:"Vehicular Endangerment", denda:3000 },
+            { kode:"A11", nama:"Failure to Yield to Emergency Vehicles", denda:2000 },
+            { kode:"A12", nama:"Failure to Yield to A Roadblock", denda:3000, impound:1 },
+            { kode:"A13", nama:"Following An Emergency Vehicle", denda:2000, impound:1 },
+            { kode:"A14", nama:"Driving Under Influence", denda:2000, impound:2 },
+            { kode:"A15", nama:"Vehicular Manslaughter", denda:5000, impound:3 },
+        ],
+        pidana: [
+            { kode:"P01", nama: "Perampokan", denda: 5000, hukuman: 10 },
+            { kode:"P02", nama: "Pembunuhan", denda: 8000, hukuman: 15 },
+            { kode:"P03", nama: "Penganiayaan", denda: 2000, hukuman: 5 }
+        ],
+        lainnya: [
+            { kode:"L01", nama: "Merusak Fasilitas Umum", denda: 1500, hukuman: 3 },
+            { kode:"L02", nama: "Menghina Petugas", denda: 800, hukuman: 1 },
+            { kode:"L03", nama: "Membawa Senjata Ilegal", denda: 2500, hukuman: 6 }
+        ]
+    };
 
-  // Pasal 2 - Pelanggaran Ringan
-  { kode:"2.1", nama:"TIDAK MEMBAWA KARTU IDENTITAS (KTP)", denda:5000 },
-  { kode:"2.2", nama:"MEMBAWA MINUMAN BERALKOHOL", denda:4000, bulan:10 },
-  { kode:"2.3", nama:"MENGGANGGU KETERTIBAN UMUM", denda:5000, bulan:15 },
-  { kode:"2.4", nama:"TELANJANG / MEMAKAI TOPENG DI PUBLIK", denda:5000, bulan:20 },
-  { kode:"2.5", nama:"PENCEMARAN NAMA BAIK", denda:3000, bulan:15 },
-  { kode:"2.6", nama:"MENGHANCURKAN KENDARAAN ORANG", denda:6000, bulan:20 },
-  { kode:"2.7", nama:"PERJUDIAN / TARUHAN", denda:8000, bulan:20 },
-  { kode:"2.8", nama:"MABUK DI AREA PUBLIK", denda:4000, bulan:15 },
-  { kode:"2.9", nama:"KEKERASAN / PEMUKULAN", denda:5000, bulan:15 },
-  { kode:"2.10", nama:"MENGHANCURKAN PROPERTI", denda:6000, bulan:20 },
-  { kode:"2.11", nama:"EKSPLITASI PRIVASI ORANG LAIN", denda:5000, bulan:10 },
-  { kode:"2.12", nama:"MEMBERIKAN INFORMASI PALSUDINO", denda:7000, bulan:20 },
-  { kode:"2.13", nama:"MENYEMBUNYIKAN BARANG ILEGAL", denda:10000, bulan:25 },
-  { kode:"2.14", nama:"MENYUAP PETUGAS", denda:12000, bulan:25 },
-  { kode:"2.15", nama:"TIDAK KOPERATIF SAAT DITANGKAP", denda:6000, bulan:15 },
-  { kode:"2.16", nama:"MENOLAK DIPERIKSA", denda:5000, bulan:10 },
-  { kode:"2.17", nama:"TIDAK MAU DIAM SAAT DIAMANKAN", denda:5000, bulan:10 },
-  { kode:"2.18", nama:"BERKELAHI DI TEMPAT UMUM", denda:8000, bulan:15 },
-  { kode:"2.19", nama:"BERISIK DI TEMPAT UMUM", denda:5000, bulan:15 },
-  { kode:"2.20", nama:"MENODONGKAN SENJATA TAJAM KE WARGA", denda:6000, bulan:20 },
+    function tampilkanPasal() {
+        const kategori = document.getElementById("kategori").value;
+        const container = document.getElementById("pasalContainer");
+        container.innerHTML = "";
+        if (!kategori) return;
 
-  // Pasal 3 - Narkoba dan Kejahatan Serius
-  { kode:"3.1", nama:"MEMBAWA BARANG ILEGAL BERUPA KANABIS ‹ 20", denda:10000, bulan:30 },
-  { kode:"3.2", nama:"MEMBAWA BARANG ILEGAL BERUPA KANABIS > 20", denda:15000, bulan:40 },
-  { kode:"3.3", nama:"MEMBAWA BARANG ILEGAL BERUPA MARIJUANA ‹ 20", denda:15000, bulan:35 },
-  { kode:"3.4", nama:"MEMBAWA BARANG ILEGAL BERUPA MARIJUANA > 20", denda:20000, bulan:45 },
-  { kode:"3.5", nama:"MEMBAWA UANG KOTOR / MERAH ‹ 5000$", denda:12000, bulan:25 },
-  { kode:"3.6", nama:"MEMBAWA UANG KOTOR / MERAH > 5000$", denda:18000, bulan:35 },
-  { kode:"3.7", nama:"MEMBAWA BARANG ILEGAL ‹ 30", denda:10000, bulan:20 },
-  { kode:"3.8", nama:"MEMBAWA BARANG ILEGAL > 30", denda:15000, bulan:30 },
-  { kode:"3.9", nama:"BERADA DI TEMPAT PRODUKSI OBAT TERLARANG", denda:15000, bulan:40 },
-  { kode:"3.10", nama:"MENCURI / MEMBOBOL KENDARAAN", denda:22000, bulan:35 },
-  { kode:"3.11", nama:"MENJUAL BELIKAN OBAT OBATAN TERLARANG", denda:20000, bulan:30 },
-  { kode:"3.12", nama:"MEMPERLIHATKAN SENJATA DI AREA PUBLIK", denda:18000, bulan:30 },
-  { kode:"3.13", nama:"PECANDU/PENGGUNA OBAT OBATAN TERLARANG", denda:8000, bulan:25 },
-  { kode:"3.14", nama:"MELAKUKAN TINDAKAN PERAMPOKAN WARUNG", denda:38000, bulan:50 },
-  { kode:"3.15", nama:"MELAKUKAN TINDAKAN PERAMPOKAN ATM", denda:25000, bulan:40 },
-  { kode:"3.16", nama:"MELAKUKAN PERAMPOKAN BANK BESAR", denda:45000, bulan:65 },
+        let table = `<table>
+            <thead>
+                <tr>
+                    <th>Pilih</th>
+                    <th>Kode</th>
+                    <th>Keterangan</th>
+                    <th>Denda</th>
+                    <th>Hukuman (bln)</th>
+                    <th>Impound (hr)</th>
+                </tr>
+            </thead>
+            <tbody>`;
 
-  // Pasal 4 - Kejahatan Terhadap Instansi dan Umum
-  { kode:"4.1", nama:"MENGHINA INSTANSI SECARA LISAN / TULISAN", denda:8000, bulan:20 },
-  { kode:"4.2", nama:"BERADA DI ZONA MERAH / TERLARANG", denda:10000, bulan:30 },
-  { kode:"4.3", nama:"PEMAKAI / PECANDU BARANG ILEGAL", denda:5000, bulan:20 },
-  { kode:"4.4", nama:"MENGHILANGKAN BARANG BUKTI", denda:12000, bulan:30 },
-  { kode:"4.5", nama:"MENYERANG PETUGAS DENGAN SENGAJA", denda:5000, bulan:25 },
-  { kode:"4.6", nama:"MENYAMAR SEBAGAI STAF INSTANSI", denda:8000, bulan:25 },
-  { kode:"4.7", nama:"MELAWAN PETUGAS SAAT PENANGKAPAN", denda:15000, bulan:35 },
-  { kode:"4.8", nama:"MENGGANGGU PETUGAS YANG SEDANG BERTUGAS", denda:5000, bulan:15 },
-  { kode:"4.9", nama:"MENODONGKAN SENJATA API", denda:10000, bulan:25 },
-  { kode:"4.10", nama:"MEMBERIKAN INFORMASI PALSU", denda:8000, bulan:20 },
-  { kode:"4.11", nama:"MELAKUKAN PERBURUAN ILEGAL", denda:10000, bulan:30 },
-  { kode:"4.12", nama:"MENGHAKIMI ORANG TANPA PROSEDUR", denda:7000, bulan:20 },
-  { kode:"4.13", nama:"PEMBOBOLAN KENDARAAN ATAU RUMAH", denda:6000, bulan:15 },
-  { kode:"4.14", nama:"MENGAJAK WARGA UNTUK DEMO", denda:15000, bulan:30 },
+        dataPasal[kategori].forEach(pasal => {
+            table += `
+                <tr>
+                    <td data-label="Pilih">
+                        <input type="checkbox" 
+                               data-denda="${pasal.denda || 0}" 
+                               data-hukuman="${pasal.hukuman || 0}" 
+                               data-impound="${pasal.impound || 0}"
+                               onchange="updateTotal()">
+                    </td>
+                    <td data-label="Kode">${pasal.kode || '-'}</td>
+                    <td data-label="Keterangan">${pasal.nama}</td>
+                    <td data-label="Denda">${pasal.denda || 0}</td>
+                    <td data-label="Hukuman">${pasal.hukuman || 0}</td>
+                    <td data-label="Impound">${pasal.impound || 0}</td>
+                </tr>
+            `;
+        });
 
-  // Pasal 5 - Senjata dan Terorisme
-  { kode:"5.1", nama:"MEMBAWA SENJATA ILEGAL < 40 AMMO (SLC,DE)", denda:10000, bulan:28 },
-  { kode:"5.2", nama:"MEMBAWA SENJATA ILEGAL > 40 AMMO (SLC,DE)", denda:15000, bulan:35 },
-  { kode:"5.3", nama:"MEMBAWA SENJATA ILEGAL > 80 AMMO (SLC,DE)", denda:28000, bulan:42 },
-  { kode:"5.4", nama:"MEMBAWA SENJATA ILEGAL < 40 AMMO (SG,UZI)", denda:12000, bulan:30 },
-  { kode:"5.5", nama:"MEMBAWA SENJATA ILEGAL > 40 AMMO (SG,UZI)", denda:18000, bulan:38 },
-  { kode:"5.6", nama:"MEMBAWA SENJATA ILEGAL > 80 AMMO (SG,UZI)", denda:30000, bulan:45 },
-  { kode:"5.7", nama:"MEMBAWA SENJATA BERAT < 50 AMMO (AK47)", denda:15000, bulan:32 },
-  { kode:"5.8", nama:"MEMBAWA SENJATA BERAT > 50 AMMO (AK47)", denda:20000, bulan:42 },
-  { kode:"5.9", nama:"MEMBAWA SENJATA BERAT > 100 AMMO (AK47)", denda:35000, bulan:48 },
-  { kode:"5.10", nama:"MENJUAL SENJATA ILEGAL < 100 AMMO", denda:18000, bulan:35 },
-  { kode:"5.11", nama:"MENJUAL SENJATA ILEGAL > 100 AMMO", denda:25000, bulan:45 },
-  { kode:"5.12", nama:"MENJUAL SENJATA ILEGAL > 200 AMMO", denda:40000, bulan:50 },
-  { kode:"5.13", nama:"MELINDUNGI PENJAHAT/NARAPIDANA", denda:20000, bulan:40 },
-  { kode:"5.14", nama:"MEMBANTU PENJAHAT KABUR", denda:25000, bulan:50 },
-  { kode:"5.15", nama:"PEMBUNUHAN BERENCANA (Persidangan)", denda:0, note:"Persidangan — denda/hukuman ditentukan pengadilan" },
-  { kode:"5.16", nama:"PENYANDERAAN TERHADAP WARGA", denda:10000, bulan:20 },
-  { kode:"5.17", nama:"PENYANDERAAN TERHADAP INSTANSI", denda:15000, bulan:30 },
-  { kode:"5.18", nama:"PENEMBAKAN TERHADAP WARGA", denda:12000, bulan:25 },
-  { kode:"5.19", nama:"PENEMBAKAN TERHADAP INSTANSI", denda:18000, bulan:35 },
-  { kode:"5.20", nama:"PEPERANGAN ANTAR KELOMPOK", denda:20000, bulan:45 },
-  { kode:"5.21", nama:"PEMBEGALAN TERHADAP WARGA", denda:15000, bulan:20 },
-  { kode:"5.22", nama:"PEMBEGALAN TERHADAP INSTANSI", denda:20000, bulan:25 },
-  { kode:"5.23", nama:"MENGANCAM DENGAN SENJATA", denda:12000, bulan:20 },
-  { kode:"5.24", nama:"BERADA DI TEMPAT CRAFTING PERSENJATAAN", denda:30000, bulan:40 },
-  { kode:"5.25", nama:"MENGGANGGU PELEBURAN / STOGS", denda:40000, bulan:80 }
-];
-
-/* Helper: format number with thousand separator */
-function numberWithCommas(x){
-  if(typeof x !== 'number') x = Number(x)||0;
-  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
-
-/* Render daftar pasal ke DOM */
-function renderList(){
-  const container = document.getElementById('daftarPasal');
-  container.innerHTML = "";
-  pasalList.forEach((p, i) => {
-    const dendaLabel = (p.denda && p.denda>0) ? `$${numberWithCommas(p.denda)}` : (p.note ? "TBD" : "$0");
-    const parts = [];
-    if(p.bulan) parts.push(`${p.bulan} bln`);
-    if(p.impound) parts.push(`Impound ${p.impound} HARI`);
-    if(p.note) parts.push(p.note);
-    const extra = parts.length ? ` — ${parts.join(", ")}` : "";
-    const item = document.createElement('label');
-    item.className = "item";
-    item.innerHTML = `
-      <input type="checkbox" data-index="${i}">
-      <div class="meta">
-        <strong>${p.kode} — ${p.nama}</strong>
-        <div class="desc">${dendaLabel}${extra}</div>
-      </div>
-      <div class="tag">${p.bulan? p.bulan+' bln' : (p.impound? p.impound+' hr' : '')}</div>
-    `;
-    container.appendChild(item);
-  });
-}
-
-/* Hitung total berdasarkan checkbox tercentang */
-function calculate(){
-  const checks = document.querySelectorAll('#daftarPasal input[type="checkbox"]');
-  let totalDenda = 0;
-  let totalBulan = 0;
-  let totalHari = 0;
-  const chosen = [];
-  checks.forEach(cb => {
-    if(cb.checked){
-      const p = pasalList[Number(cb.dataset.index)];
-      totalDenda += Number(p.denda || 0);
-      totalBulan += Number(p.bulan || 0);
-      totalHari += Number(p.impound || 0);
-      chosen.push(p);
+        table += `</tbody></table>`;
+        container.innerHTML = table;
     }
-  });
 
-  document.getElementById('totalDenda').textContent = `$${numberWithCommas(totalDenda)}`;
-  document.getElementById('totalBulan').textContent = `${numberWithCommas(totalBulan)} bln`;
-  document.getElementById('totalHari').textContent = `${numberWithCommas(totalHari)} hari`;
+    function updateTotal() {
+        let totalDenda = 0;
+        let totalHukuman = 0;
+        let totalImpound = 0;
 
-  const selList = document.getElementById('selectedList');
-  if(chosen.length === 0){
-    selList.textContent = "Belum ada pasal yang dipilih.";
-  } else {
-    selList.innerHTML = "";
-    chosen.forEach(p => {
-      const div = document.createElement('div');
-      div.style.padding = "6px 8px";
-      div.style.borderBottom = "1px dashed rgba(0,0,0,0.04)";
-      div.innerHTML = `<strong>${p.kode}</strong> — ${p.nama} <span style="float:right;color:#1b5e20">$${numberWithCommas(p.denda||0)}</span>
-        <div style="font-size:0.86em;color:#234a24;margin-top:4px">${p.bulan? p.bulan+' bln':''} ${p.impound? ' • Impound '+p.impound+' hari':''} ${p.note? ' • '+p.note : ''}</div>`;
-      selList.appendChild(div);
-    });
-  }
-}
+        document.querySelectorAll("#pasalContainer input:checked").forEach(input => {
+            totalDenda += parseInt(input.dataset.denda);
+            totalHukuman += parseInt(input.dataset.hukuman);
+            totalImpound += parseInt(input.dataset.impound);
+        });
 
-/* Bind events */
-function bindEvents(){
-  document.getElementById('daftarPasal').addEventListener('change', (e) => {
-    if(e.target && e.target.matches('input[type="checkbox"]')){
-      calculate();
+        document.getElementById("totalDenda").textContent = totalDenda;
+        document.getElementById("totalHukuman").textContent = totalHukuman;
+        document.getElementById("totalImpound").textContent = totalImpound;
     }
-  });
 
-  document.getElementById('btnReset').addEventListener('click', () => {
-    document.querySelectorAll('#daftarPasal input[type="checkbox"]').forEach(cb => cb.checked = false);
-    calculate();
-    window.scrollTo({top:0, behavior:'smooth'});
-  });
-
-  document.getElementById('btnCopy').addEventListener('click', () => {
-    // buat ringkasan teks
-    const title = 'Kalkulator Denda LVPD — Ringkasan';
-    const total = document.getElementById('totalDenda').textContent;
-    const bulan = document.getElementById('totalBulan').textContent;
-    const hari = document.getElementById('totalHari').textContent;
-    const checks = document.querySelectorAll('#daftarPasal input[type="checkbox"]');
-    let lines = [title, `Total Denda: ${total}`, `Total Hukuman: ${bulan}`, `Total Impound: ${hari}`, '', 'Pasal terpilih:'];
-    checks.forEach(cb => {
-      if(cb.checked){
-        const p = pasalList[Number(cb.dataset.index)];
-        lines.push(`${p.kode} — ${p.nama} — $${numberWithCommas(p.denda||0)}${p.bulan? ' — '+p.bulan+' bln' : ''}${p.impound? ' — Impound '+p.impound+' hari' : ''}${p.note? ' — '+p.note : ''}`);
-      }
-    });
-    const text = lines.join('\\n');
-    navigator.clipboard?.writeText(text).then(()=>{
-      alert('Ringkasan disalin ke clipboard.');
-    }).catch(()=>{
-      prompt('Salin manual teks berikut:', text);
-    });
-  });
-}
-
-/* inisialisasi */
-renderList();
-bindEvents();
-calculate();
-
+    function resetPilihan() {
+        document.getElementById("kategori").value = "";
+        document.getElementById("pasalContainer").innerHTML = "";
+        document.getElementById("totalDenda").textContent = 0;
+        document.getElementById("totalHukuman").textContent = 0;
+        document.getElementById("totalImpound").textContent = 0;
+    }
 </script>
+
 </body>
 </html>

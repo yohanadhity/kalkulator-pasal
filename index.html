@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kalkulator Denda & Hukuman LVPD</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #e6f9e6;
+        margin: 0;
+        padding: 0;
+    }
+    header {
+        background-color: #4CAF50;
+        color: white;
+        padding: 15px;
+        text-align: center;
+    }
+    main {
+        max-width: 600px;
+        margin: auto;
+        padding: 15px;
+    }
+    select, button {
+        width: 100%;
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+    .pasal-list {
+        background: #fff;
+        border-radius: 8px;
+        padding: 10px;
+        margin-top: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .pasal-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 5px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .pasal-item:last-child {
+        border-bottom: none;
+    }
+    .total {
+        background: #c8f7c5;
+        padding: 10px;
+        border-radius: 5px;
+        font-weight: bold;
+        margin-top: 15px;
+    }
+    @media (max-width: 600px) {
+        .pasal-item {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <h1>Kalkulator Denda & Hukuman LVPD</h1>
+</header>
+
+<main>
+    <label for="kategori">Pilih Kategori Pasal:</label>
+    <select id="kategori" onchange="tampilkanPasal()">
+        <option value="">-- Pilih Kategori --</option>
+        <option value="laluLintas">Pelanggaran Lalu Lintas</option>
+        <option value="pidana">Tindak Pidana</option>
+        <option value="lainnya">Lainnya</option>
+    </select>
+
+    <div id="pasalContainer" class="pasal-list"></div>
+
+    <div class="total">
+        Total Denda: <span id="totalDenda">0</span>  
+        <br>
+        Total Hukuman: <span id="totalHukuman">0</span> bulan
+    </div>
+
+    <button onclick="resetPilihan()">Reset</button>
+</main>
+
+<script>
+    const dataPasal = {
+        laluLintas: [
+            { nama: "Melanggar Lampu Merah", denda: 500, hukuman: 0 },
+            { nama: "Tidak Pakai Helm", denda: 300, hukuman: 0 },
+            { nama: "Balapan Liar", denda: 1000, hukuman: 2 }
+        ],
+        pidana: [
+            { nama: "Perampokan", denda: 5000, hukuman: 10 },
+            { nama: "Pembunuhan", denda: 8000, hukuman: 15 },
+            { nama: "Penganiayaan", denda: 2000, hukuman: 5 }
+        ],
+        lainnya: [
+            { nama: "Merusak Fasilitas Umum", denda: 1500, hukuman: 3 },
+            { nama: "Menghina Petugas", denda: 800, hukuman: 1 },
+            { nama: "Membawa Senjata Ilegal", denda: 2500, hukuman: 6 }
+        ]
+    };
+
+    function tampilkanPasal() {
+        const kategori = document.getElementById("kategori").value;
+        const container = document.getElementById("pasalContainer");
+        container.innerHTML = "";
+        if (!kategori) return;
+
+        dataPasal[kategori].forEach((pasal, index) => {
+            const item = document.createElement("div");
+            item.classList.add("pasal-item");
+            item.innerHTML = `
+                <label>
+                    <input type="checkbox" onchange="updateTotal()" data-denda="${pasal.denda}" data-hukuman="${pasal.hukuman}">
+                    ${pasal.nama}
+                </label>
+                <span>Denda: ${pasal.denda} | Hukuman: ${pasal.hukuman} bln</span>
+            `;
+            container.appendChild(item);
+        });
+    }
+
+    function updateTotal() {
+        let totalDenda = 0;
+        let totalHukuman = 0;
+        document.querySelectorAll("#pasalContainer input:checked").forEach(input => {
+            totalDenda += parseInt(input.dataset.denda);
+            totalHukuman += parseInt(input.dataset.hukuman);
+        });
+        document.getElementById("totalDenda").textContent = totalDenda;
+        document.getElementById("totalHukuman").textContent = totalHukuman;
+    }
+
+    function resetPilihan() {
+        document.getElementById("kategori").value = "";
+        document.getElementById("pasalContainer").innerHTML = "";
+        document.getElementById("totalDenda").textContent = 0;
+        document.getElementById("totalHukuman").textContent = 0;
+    }
+</script>
+
+</body>
+</html>

@@ -35,11 +35,10 @@
         border-radius: 8px;
         margin-top: 10px;
         box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        overflow-x: auto; /* ✅ Scroll horizontal kalau tabel lebar */
+        overflow-x: auto;
     }
     table {
         width: 100%;
-        min-width: 600px; /* ✅ Mencegah kolom terlalu sempit di mobile */
         border-collapse: collapse;
     }
     th, td {
@@ -51,6 +50,10 @@
     th {
         background-color: #c8f7c5;
     }
+    tr:hover {
+        background-color: #f5fff5;
+        cursor: pointer;
+    }
     .total {
         background: #c8f7c5;
         padding: 10px;
@@ -59,17 +62,32 @@
         margin-top: 15px;
         font-size: 16px;
     }
-    /* ✅ Perbaikan khusus untuk layar HP */
+    /* Perbaikan mobile */
     @media (max-width: 600px) {
-        main {
-            padding: 10px;
+        table, thead, tbody, th, td, tr {
+            display: block;
+        }
+        thead {
+            display: none;
+        }
+        tr {
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 8px;
+        }
+        td {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 14px;
+        }
+        td::before {
+            font-weight: bold;
+            content: attr(data-label);
         }
         select, button {
             font-size: 14px;
-        }
-        th, td {
-            padding: 6px;
-            font-size: 13px;
         }
     }
 </style>
@@ -85,8 +103,10 @@
     <select id="kategori" onchange="tampilkanPasal()">
         <option value="">-- Pilih Kategori --</option>
         <option value="laluLintas">Pelanggaran Lalu Lintas</option>
-        <option value="pidana">Tindak Pidana</option>
-        <option value="lainnya">Lainnya</option>
+        <option value="ringan">Pelanggaran Ringan</option>
+        <option value="serius">Narkoba & Kejahatan Serius</option>
+        <option value="instansi">Kejahatan Terhadap Instansi & Umum</option>
+        <option value="senjata">Senjata & Terorisme</option>
     </select>
 
     <div id="pasalContainer" class="pasal-list"></div>
@@ -106,30 +126,79 @@
     const dataPasal = {
         laluLintas: [
             { kode:"A01", nama:"General Traffic Violations", denda:2000 },
-            { kode:"A02", nama:"Failed to Pay Any Tickets Given", denda:5000, hukuman:15 },
-            { kode:"A03", nama:"Driving without License", denda:2000 },
-            { kode:"A04", nama:"Reckless Driving", denda:2000 },
-            { kode:"A05", nama:"Speeding", denda:2000 },
-            { kode:"A06", nama:"Improper Vehicle Parking", denda:3000, impound:2 },
-            { kode:"A07", nama:"Evading Police Stop", denda:2000, impound:2 },
-            { kode:"A08", nama:"Illegal Modifications on Vehicle", denda:2000, impound:2 },
-            { kode:"A09", nama:"Unregistered Vehicle", denda:2000, impound:2 },
-            { kode:"A10", nama:"Vehicular Endangerment", denda:3000 },
-            { kode:"A11", nama:"Failure to Yield to Emergency Vehicles", denda:2000 },
-            { kode:"A12", nama:"Failure to Yield to A Roadblock", denda:3000, impound:1 },
-            { kode:"A13", nama:"Following An Emergency Vehicle", denda:2000, impound:1 },
-            { kode:"A14", nama:"Driving Under Influence", denda:2000, impound:2 },
-            { kode:"A15", nama:"Vehicular Manslaughter", denda:5000, impound:3 },
+            { kode:"A02", nama:"Tidak membayarkan denda selama satu minggu", denda:5000, hukuman:10 },
+            { kode:"A03", nama:"Berkendara tidak memiliki SIM", denda:2000 },
+            { kode:"A04", nama:"Berkendara secara ugal-ugalan", denda:2000 },
+            { kode:"A05", nama:"Berkendara melebihi batas kecepatan", denda:2000 },
+            { kode:"A06", nama:"Parkir sembarangan pada area terlarang", denda:3000, impound:2 },
+            { kode:"A07", nama:"Menghindar saat diberhentikan petugas", denda:2000, impound:2 },
+            { kode:"A08", nama:"Memodifikasi mobil secara ilegal", denda:2000, impound:2 },
+            { kode:"A09", nama:"Kendaraan tidak memiliki plat nomor", denda:2000, impound:2 },
+            { kode:"A10", nama:"Lalai dalam berkendara dan membahayakan warga lain", denda:3000 },
+            { kode:"A11", nama:"Tidak memprioritaskan kendaraan darurat", denda:2000 },
+            { kode:"A12", nama:"Menerobos barikade kepolisian", denda:3000, impound:1 },
+            { kode:"A13", nama:"Mengikuti kendaraan darurat tanpa alasan", denda:2000, impound:1 },
+            { kode:"A14", nama:"Berkendara dalam keadaan mabuk / mengantuk", denda:2000, impound:2 },
+            { kode:"A15", nama:"Terlibat dalam kecelakaan sampai menimbulkan korban jiwa", denda:5000, impound:3 },
         ],
-        pidana: [
-            { kode:"P01", nama: "Perampokan", denda: 5000, hukuman: 10 },
-            { kode:"P02", nama: "Pembunuhan", denda: 8000, hukuman: 15 },
-            { kode:"P03", nama: "Penganiayaan", denda: 2000, hukuman: 5 }
+        ringan: [
+            { kode:"D04", nama:"Meludah ditempat umum", denda:2500, hukuman:10 },
+            { kode:"D05", nama:"Buang air kecil / besar ditempat umum", denda:2500, hukuman:10 },
+            { kode:"D06", nama:"Kehilangan kesadaran ditempat umum karena alkohol", denda:4000, hukuman:10 },
+            { kode:"D07", nama:"Menyebarkan ujaran buruk individu / kelompok", denda:3000, hukuman:10 },
+            { kode:"D08", nama:"Menyebarkan ujaran kebencian", denda:5000, hukuman:15 },
+            { kode:"D09", nama:"Membuat keributan yang berlebihan", denda:3000, hukuman:20 },
+            { kode:"D11", nama:"Berkelahi ditempat umum", denda:5000, hukuman:15 },
+            { kode:"D12", nama:"Memakai masker diarea yang dilarang", denda:2500, hukuman:5 },
+            { kode:"D13", nama:"Menyakiti hewan secara sengaja", denda:3000, hukuman:15 },
+            { kode:"D14", nama:"Merusak tanaman disekitar", denda:3000, hukuman:15 },
         ],
-        lainnya: [
-            { kode:"L01", nama: "Merusak Fasilitas Umum", denda: 1500, hukuman: 3 },
-            { kode:"L02", nama: "Menghina Petugas", denda: 800, hukuman: 1 },
-            { kode:"L03", nama: "Membawa Senjata Ilegal", denda: 2500, hukuman: 6 }
+        serius: [
+            { kode:"F01-1", nama:"Membawa Marijuana [1-10 pcs]", denda:5000, hukuman:10 },
+            { kode:"F01-2", nama:"Membawa Marijuana [11-25 pcs]", denda:8000, hukuman:15 },
+            { kode:"F01-3", nama:"Membawa Marijuana [> 25 pcs]", denda:15000, hukuman:20 },
+            { kode:"F02", nama:"Membawa zat terlarang tanpa legalitas jelas", denda:7500, hukuman:15 },
+            { kode:"F03", nama:"Berada dibawah pengaruh obat-obatan terlarang saat diperiksa", denda:3000, hukuman:20 },
+            { kode:"F04", nama:"Menjadi kurir obat-obatan terlarang", denda:6000, hukuman:20 },
+            { kode:"F05", nama:"Terlibat dalam pembuatan obat-obatan terlarang", denda:5000, hukuman:25 },
+            { kode:"F06", nama:"Berada ditempat pesta obat-obatan terlarang", denda:2500, hukuman:15 },
+        ],
+        instansi: [
+            { kode:"B01", nama:"Mengganggu / menipu petugas saat bertugas", denda:2500, hukuman:5 },
+            { kode:"B02", nama:"Menyalahgunakan layanan darurat", denda:2000, hukuman:10 },
+            { kode:"B03", nama:"Menggunakan atribut instansi secara ilegal", denda:6000, hukuman:10 },
+            { kode:"B04", nama:"Menyamar sebagai petugas instansi", denda:6000, hukuman:10 },
+            { kode:"B05", nama:"Melakukan tindakan suap terhadap petugas", denda:2500, hukuman:15 },
+            { kode:"B06", nama:"Memberikan informasi / laporan palsu", denda:2500, hukuman:30 },
+            { kode:"B07", nama:"Menyerang / melukai petugas", denda:2500, hukuman:30 },
+            { kode:"B08", nama:"Membunuh aparat saat bertugas", denda:5000, hukuman:60 },
+            { kode:"B09", nama:"Membunuh pejabat secara sengaja", denda:5000, hukuman:60 },
+            { kode:"B10", nama:"Memalsukan dokumen instansi", denda:5000, hukuman:30 },
+            { kode:"C02", nama:"Masuk tanpa izin ke properti pemerintah", denda:2500, hukuman:25 },
+            { kode:"C03", nama:"Merusak properti pribadi / pemerintah", denda:2500, hukuman:25 },
+            { kode:"C04", nama:"Pembakaran properti", denda:8000, hukuman:30 },
+            { kode:"C06", nama:"Penyalahgunaan properti sebagai gudang barang ilegal", denda:8000, hukuman:30 },
+            { kode:"C09", nama:"Pemilik bisnis melakukan tindak kriminal [Penyegelan]" },
+            { kode:"C10", nama:"Bisnis tidak memiliki legalitas", denda:15000, hukuman:0 },
+            { kode:"D01", nama:"Pengumpulan masa yang berujung kericuhan", denda:5000, hukuman:40 },
+            { kode:"D02", nama:"Menolak membubarkan diri", denda:5000, hukuman:15 },
+            { kode:"D03", nama:"Ikut dalam kerusuhan yang menyebabkan kerugian", denda:5000, hukuman:30 },
+            { kode:"D10", nama:"Melakukan penghakiman secara sepihak", denda:7000, hukuman:20 },
+        ],
+        senjata: [
+            { kode:"E03", nama: "Penyerangan menggunakan sajam / tumpul", denda:6000, hukuman:25 },
+            { kode:"E08", nama: "Melakukan penembakan dari dalam kendaraan", denda:6000, hukuman:25 },
+            { kode:"E11", nama: "Perampokan bersenjata", denda:12000, hukuman:35 },
+            { kode:"E21", nama: "Perampokan Warung", denda:7500, hukuman:25 },
+            { kode:"G01", nama: "Penggunaan senjata tajam / tumpul", denda:5000, hukuman:20 },
+            { kode:"G02", nama: "Kepemilikan senjata api ilegal", denda:8000, hukuman:25 },
+            { kode:"G03", nama: "", denda: 2500, hukuman: 6 },
+            { kode:"G04", nama: "Melakukan penodongan senjata ke suatu kelompok / individu", denda:5000, hukuman:20 },
+            { kode:"G05", nama: "Menjual senjata api ilegal", denda:10000, hukuman:30 },
+            { kode:"G06", nama: "Penyelundupan senjata", denda:10000, hukuman:25 },
+            { kode:"G07", nama: "Membawa vest dikantong", denda:7000, hukuman:30 },
+            { kode:"G08", nama: "Menembak sembarangan", denda:5000, hukuman:40 },
+            { kode:"G09", nama: "Crafting senjata", denda:15000, hukuman:50 },
         ]
     };
 
@@ -152,40 +221,41 @@
             </thead>
             <tbody>`;
 
-        dataPasal[kategori].forEach(pasal => {
+        dataPasal[kategori].forEach((pasal, index) => {
             table += `
-                <tr>
+                <tr onclick="toggleCheck(${index})">
                     <td data-label="Pilih">
-                        <input type="checkbox" 
+                        <input id="cb${index}" type="checkbox" 
                                data-denda="${pasal.denda || 0}" 
                                data-hukuman="${pasal.hukuman || 0}" 
                                data-impound="${pasal.impound || 0}"
-                               onchange="updateTotal()">
+                               onclick="event.stopPropagation(); updateTotal()">
                     </td>
                     <td data-label="Kode">${pasal.kode || '-'}</td>
                     <td data-label="Keterangan">${pasal.nama}</td>
                     <td data-label="Denda">${pasal.denda || 0}</td>
                     <td data-label="Hukuman">${pasal.hukuman || 0}</td>
                     <td data-label="Impound">${pasal.impound || 0}</td>
-                </tr>
-            `;
+                </tr>`;
         });
 
         table += `</tbody></table>`;
         container.innerHTML = table;
     }
 
-    function updateTotal() {
-        let totalDenda = 0;
-        let totalHukuman = 0;
-        let totalImpound = 0;
+    function toggleCheck(index) {
+        const cb = document.getElementById("cb" + index);
+        cb.checked = !cb.checked;
+        updateTotal();
+    }
 
+    function updateTotal() {
+        let totalDenda = 0, totalHukuman = 0, totalImpound = 0;
         document.querySelectorAll("#pasalContainer input:checked").forEach(input => {
             totalDenda += parseInt(input.dataset.denda);
             totalHukuman += parseInt(input.dataset.hukuman);
             totalImpound += parseInt(input.dataset.impound);
         });
-
         document.getElementById("totalDenda").textContent = totalDenda;
         document.getElementById("totalHukuman").textContent = totalHukuman;
         document.getElementById("totalImpound").textContent = totalImpound;
@@ -202,4 +272,3 @@
 
 </body>
 </html>
-

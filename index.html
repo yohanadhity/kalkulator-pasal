@@ -36,16 +36,19 @@
         margin-top: 10px;
         box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         overflow-x: auto;
+        -webkit-overflow-scrolling: touch; /* Smooth scroll di iOS */
     }
     table {
         width: 100%;
         border-collapse: collapse;
+        min-width: 700px; /* supaya kolom tidak terlalu rapat */
     }
     th, td {
         border-bottom: 1px solid #f0f0f0;
         padding: 8px;
         text-align: left;
         font-size: 14px;
+        white-space: nowrap;
     }
     th {
         background-color: #c8f7c5;
@@ -62,32 +65,12 @@
         margin-top: 15px;
         font-size: 16px;
     }
-    /* Perbaikan mobile */
     @media (max-width: 600px) {
-        table, thead, tbody, th, td, tr {
-            display: block;
-        }
-        thead {
-            display: none;
-        }
-        tr {
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            padding: 8px;
-        }
-        td {
-            display: flex;
-            justify-content: space-between;
-            padding: 6px 0;
-            font-size: 14px;
-        }
-        td::before {
-            font-weight: bold;
-            content: attr(data-label);
-        }
         select, button {
             font-size: 14px;
+        }
+        table {
+            font-size: 13px;
         }
     }
 </style>
@@ -224,18 +207,16 @@
         dataPasal[kategori].forEach((pasal, index) => {
             table += `
                 <tr onclick="toggleCheck(${index})">
-                    <td data-label="Pilih">
-                        <input id="cb${index}" type="checkbox" 
+                    <td><input id="cb${index}" type="checkbox" 
                                data-denda="${pasal.denda || 0}" 
                                data-hukuman="${pasal.hukuman || 0}" 
                                data-impound="${pasal.impound || 0}"
-                               onclick="event.stopPropagation(); updateTotal()">
-                    </td>
-                    <td data-label="Kode">${pasal.kode || '-'}</td>
-                    <td data-label="Keterangan">${pasal.nama}</td>
-                    <td data-label="Denda">${pasal.denda || 0}</td>
-                    <td data-label="Hukuman">${pasal.hukuman || 0}</td>
-                    <td data-label="Impound">${pasal.impound || 0}</td>
+                               onclick="event.stopPropagation(); updateTotal()"></td>
+                    <td>${pasal.kode || '-'}</td>
+                    <td>${pasal.nama}</td>
+                    <td>${pasal.denda || 0}</td>
+                    <td>${pasal.hukuman || 0}</td>
+                    <td>${pasal.impound || 0}</td>
                 </tr>`;
         });
 
